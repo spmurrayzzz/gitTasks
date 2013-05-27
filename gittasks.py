@@ -1,9 +1,12 @@
-import os, re, datetime, sys, hashlib, json, pprint
+import os, re, datetime, sys, hashlib, json, argparse
+from datetime import datetime
+import pytz
 
 class gitTasks(object):
 
-    def __init__(self, identifier):
-        self.identifier = identifier
+    def __init__(self, options):
+        self.identifier = options.identifier
+        self.verbose = options.verbose
         self.tasks = []
         self.tasksInFile = []
         self.tasksInCommit = []
@@ -41,15 +44,16 @@ class gitTasks(object):
         return [author, email]
 
     def getDate(self):
-        dt = datetime.datetime.utcnow()
-        return dt.strftime("%s")
+        import calendar
+        dt = datetime.utcnow()
+        return calendar.timegm(dt.utctimetuple())
 
     # Starting point of script
     def run(self):
         # 1. Does the .gittasks file exist?
         if os.path.exists(self.curDir + '/.gittasks'):
             # Retrieve the file:
-            self.tasksInFile = self.loadFile()
+            self.loadFile()
             diff = self.getDiff()
             self.parse(diff)
             self.parseChanges()
@@ -70,7 +74,7 @@ class gitTasks(object):
             gitTasksFile = open(self.curDir + '/.gittasks')
             gitTasks = json.load(gitTasksFile)
             gitTasksFile.close()
-            return gitTasks
+            self.tasksInFile = gitTasks
         else:
             sys.exit("A gitTasks file was not found!")
 
@@ -79,7 +83,7 @@ class gitTasks(object):
         f = []
         thisTasks = []
         lineNumber = 0
-        # Search for gitTaskIdentifier
+        # Search for self.identifier
         for num, line in enumerate(data, 1):
 
             # Retrieve the file names:
@@ -109,7 +113,7 @@ class gitTasks(object):
                 initMatch = gtMatch.group()
                 gtLine = re.search(re.escape(self.identifier) + "(.*)", initMatch)
                 gtLine = gtLine.group()
-                gtLine = gtLine.replace(gitTaskIdentifier, '')
+                gtLine = gtLine.replace(self.identifier, '')
                 gtLine = gtLine.strip()
 
                 # Get commit hash:
@@ -162,7 +166,7 @@ class gitTasks(object):
                     if (gtMatch):
                         tasks = {}
                         gtLine = gtMatch.group()
-                        gtLine = gtLine.replace(gitTaskIdentifier, '')
+                        gtLine = gtLine.replace(self.identifier, '')
                         gtLine = gtLine.strip()
 
                         # Get commit hash:
@@ -201,34 +205,16 @@ class gitTasks(object):
             if not any(e['taskHash'] == x['taskHash'] for e in entries):
                 entries.append(x)
 
-            # if any(e['taskHash'] == y['taskHash'] and y['operator'] == '-' for e in entries):
-            #     y['completed'] = self.getDate()
-            #     entries.append(y)
         for x, e in [(x,e) for x in self.tasksInCommit for e in entries]:
             if e['taskHash'] == x['taskHash'] and x['operator'] == '-':
                 e['completed'] = self.getDate()
 
-        # for task in self.tasksInFile:
-        #     entry = {}
-        #     taskHash = task['taskHash']
-        #     for commitTask in self.tasksInCommit:
-        #         commitTaskHash = commitTask['taskHash']
-        #         if taskHash == commitTaskHash:
-        #             if commitTask['operator'] == '-':
-        #                 entry = commitTask
-        #                 entry['date'] = task['date']
-        #                 entry['completed'] = self.getDate()
-        #                 entry['operator'] = '-'
-        #         else:
-        #             entry = commitTask
-        #     thisTasks.append(entry)
-        # print thisTasks
         self.tasks = entries
 
     def saveTasks(self):
         # If there aren't any tasks, alert the user
         if len(self.tasks) <= 0:
-            print "Could not save tasks; No tasks found!"
+            sys.exit("No new tasks found")
         else:
             # Else, open the file and save tasks
             target = open(self.curDir + '/.gittasks', 'w')
@@ -242,50 +228,94 @@ class gitTasks(object):
         else:
             pass
 
-    def showHelp(self):
-        print "Help coming soon."
-        print "Please visit http://gittasks.com for details."
+    def search(self, term):
+        matches = []
+        self.loadFile()
+        print "Search for '%s'..." % term
+        for line in self.tasksInFile:
+            regex = r"(.*)" + str(term) + "(.*)"
+            match = re.search(regex, line['task'])
+            if (match):
+                matches.append(self.formatTaskForDisplay(line))
+        if len(matches) > 0:
+            if len(matches) == 1:
+                m = 'match'
+            else:
+                m = 'matches'
+            print "%d %s found" % (len(matches), m)
+            print "\n".join(matches)
+        else:
+            print "No matches found"
+
+    def formatTaskForDisplay(self, obj):
+        task = []
+        if self.verbose:
+            task.append('> ' + obj['task'])
+            if not obj['completed'] == '':
+                dt = datetime.fromtimestamp(int(obj['completed']))
+                c = dt.strftime('%Y-%m-%d %H:%M')
+                task.append('  Completed: ' + c)
+                showLineNumber = False
+            else:
+                dt = datetime.fromtimestamp(int(obj['date']))
+                d = dt.strftime('%Y-%m-%d %H:%M')
+                task.append('  Added: ' + d)
+                showLineNumber = True
+            task.append('  File Path: ' + obj['filePath'])
+            if showLineNumber:
+                task.append('  Line Number: ' + str(obj['lineNumber']))
+        else:
+            if obj['completed'] == '':
+                task.append("> %s, line %d, path: %s" % (obj['task'], obj['lineNumber'], obj['filePath']))
+
+        return "\n".join(task)
+
 
     def showTasks(self, showAll = False):
         print "# gitTasks #"
-        tasksInFile = self.loadFile()
-        for task in tasksInFile:
-            if showAll:
-                print '> ' + task['task']
-                if not task['completed'] == '':
-                    c = datetime.datetime.fromtimestamp(int(task['completed'])).strftime('%Y-%m-%d %H:%M:%S')
-                    print ' Completed: ' + c
-                    showLineNumber = False
-                else:
-                    d = datetime.datetime.fromtimestamp(int(task['date'])).strftime('%Y-%m-%d %H:%M:%S')
-                    print ' Added: ' + d
-                    showLineNumber = True
-                print ' File Path: ' + task['filePath']
-                if showLineNumber:
-                    print ' Line Number: ' + str(task['lineNumber'])
-                print "\n"
-            else:
-                if task['completed'] == '':
-                    print "> %s, line %d, path: %s" % (task['task'], task['lineNumber'], task['filePath'])
+        self.loadFile()
+        for line in self.tasksInFile:
+            task = self.formatTaskForDisplay(line)
+            if task:
+                print task
 
+# Create the parser
+parser = argparse.ArgumentParser(description="Manage task lists from a repository.")
 
+parser.add_argument("-i", "--identifier",
+    default="@gt",
+    help="Set the gitTasks identifier")
 
-gitTaskIdentifier = "@gt"
-if len(sys.argv) > 1:
-    arg1 = sys.argv[1]
-    arg2 = ''
-    if arg1 == 'show':
-        if len(sys.argv) > 2:
-            arg2 = sys.argv[2]
-            if arg2 == 'all':
-                arg2 = True
-        gitTasks = gitTasks(gitTaskIdentifier)
-        gitTasks.showTasks(arg2)
-    elif arg1 == 'help':
-        gitTasks = gitTasks(gitTaskIdentifier)
-        gitTasks.showHelp()
-    else:
-        gitTaskIdentifier = arg1
+parser.add_argument("-s", "--search",
+    default=None,
+    help="Simple text search performed on all tasks")
+
+parser.add_argument("-v", "--verbose",
+    action="store_true",
+    dest="verbose",
+    help="Run in verbose mode")
+
+parser.add_argument("-d", "--display",
+    action="store_true",
+    dest="display",
+    help="Display a task list; defaults to concise view")
+
+# Not implemented yet
+# parser.add_argument("-c", "--create",
+#     action="store_true",
+#     dest="create",
+#     help="Create a new task")
+
+options = parser.parse_args()
+
+# Initialize the class:
+gitTasks = gitTasks(options)
+
+# Run the script ;)
+if options.search:
+    gitTasks.search(options.search)
+elif options.display:
+    gitTasks.showTasks(options.verbose)
 else:
-    gitTasks = gitTasks(gitTaskIdentifier)
     gitTasks.run()
+

@@ -33,8 +33,29 @@ Finally, run the following from the command line:
 
 All done!
 
-
 ## Usage
+
+### Alias
+I create an alias for `gt` in my `.bashrc` file:
+
+    alias gt='python /path/to/gittasks.py'
+
+### Help
+Run `gt -h` for help:
+
+    nsnow@nsnow-fedora (/var/www/sandbox/dummy.repo) $ gt -h
+    usage: gittasks.py [-h] [-i IDENTIFIER] [-s SEARCH] [-v] [-d]
+
+    Manage task lists from a repository.
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -i IDENTIFIER, --identifier IDENTIFIER
+                            Set the gitTasks identifier
+      -s SEARCH, --search SEARCH
+                            Simple text search performed on all tasks
+      -v, --verbose         Run in verbose mode
+      -d, --display         Display a task list; defaults to concise view
 
 ### Create a task
 Place `@gt` anywhere in your code. It doesn't matter what characters you use to comment the task out, so `// @gt` and `# @gt` will be the same.
@@ -53,15 +74,25 @@ Or, you can run the following on any repository:
     $ python /path/to/gittasks.py
 
 
-### Show uncompleted tasks
-Pass the `show` argument to the script:
+### Show tasks
+Pass the `-d` or `--display` flag to the script. The `-d` flag shows a concise task list with `task, line number, file path` and only displays uncompleted tasks.
 
-    $ python /path/to/gittasks.py show
+    $ python /path/to/gittasks.py [-d|--display]
 
 ### Show all tasks
-Pass the `show all` agruments to the script:
+Pass the `-v|--verbose` flag to the script, along with the `-d` flag, to display all tasks, whether they are incomplete or not. If the task is completed, the date and time that it was completed on is displayed. Otherwise, the date the task was first added to the list is displayed.
 
-    $ python /path/to/gittasks.py show all
+    $ python /path/to/gittasks.py [-d|--display] [-v|--verbose]
+
+### Search tasks
+Pass the `-s` or `--search` flag with a term following. You may use the `-v` flag to have more information returned. However, the term is searched for regardless if the task is complete or not.
+
+    $ python /path/to/gittasks.py [-s|--search] term -v
+
+### Set gitTask identifier
+By default, the gitTask identifier used to identify tasks within your codebase is `@gt`. This can be changed though by add the `-i` or `--identifier` flag, followed by the string you want to use in your codebase. If you want to use a different identifier, you'll need to add this flag to the python script line in the `.git/hooks/pre-commit` file.
+
+    $ python /path/to/gittasks.py [i|--identifier] @identifier
 
 ## Uninstall
 Just delete the `gittasks.py` file and remove the call to the script from each repository's `.git/hooks/pre-commit` file.
