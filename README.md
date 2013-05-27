@@ -1,10 +1,19 @@
 # gitTasks
 
 ## What is it?
-gitTasks is a simple program to create task lists from within your codebase.
+**gitTasks** is a simple program to create task lists from within your codebase.
+
+![Command-line view of showing concise gitTasks](gitTasks-show.png "gitTasks: show")
+
+![Command-line view of showing verbose gitTasks](gitTasks-all.png "gitTasks: show all")
 
 ## Why?
 In order to keep track of things I need to do within my codebase, I've often put in `@TODO` in a comment directly in the file. Then, when I need to find out what my tasks were, I'd do a search on the entire directory (either in Sublime or via the command line) for `@TODO`. However, I never knew when I originally put the task in the codebase or a way to keep track of all those tasks, even after I deleted them from the repository. **gitTasks** was my naive attempt to solve this problem.
+
+## Requirements
+* Python 2.7+
+
+gitTasks has been tested with Python 2.7.3. As of this writing, it is not compatible with 3.0+ just yet.
 
 ## Install
 
@@ -15,10 +24,9 @@ Secondly, in your git repository, if you don't have a `pre-commit` file in the `
 Next, inside the `pre-commit` file, add the following:
 
     #!/bin/sh
-
     python /path/to/gittasks.py
 
-Finally, run the following:
+Finally, run the following from the command line:
 
     $ chmod u+x /path/to/gittasks.py
     $ chmod u+x .git/hooks/pre-commit
@@ -40,6 +48,11 @@ When you run `git commit -m "Commit message"`, the `pre-commit` kicks in and run
 
 Otherwise, `git diff HEAD` is run from the script, which picks up any changes between that and the tasks in the `.gittasks` file. Tasks no longer present are marked as completed.
 
+Or, you can run the following on any repository:
+
+    $ python /path/to/gittasks.py
+
+
 ### Show uncompleted tasks
 Pass the `show` argument to the script:
 
@@ -55,3 +68,24 @@ Just delete the `gittasks.py` file and remove the call to the script from each r
 
 ## Bugs
 Submit a [new issue](https://github.com/nikkisnow/gitTasks/issues/new) detailing the issue. Or, feel free to contribute by opening a [pull request](https://github.com/nikkisnow/gitTasks/pulls).
+
+## License
+Copyright (c) 2013, Nikki Snow
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.

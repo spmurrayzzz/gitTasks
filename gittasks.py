@@ -43,16 +43,6 @@ class gitTasks(object):
     def getDate(self):
         dt = datetime.datetime.utcnow()
         return dt.strftime("%s")
-        # log = os.popen("git log -1 HEAD")
-        # for i in log.readlines():
-        #     # Get the date
-        #     dateMatch = re.search(r'Date: (.*)', i)
-        #     if (dateMatch):
-        #         dateLine = dateMatch.group()
-        #         d = dateLine.replace('Date: ', '')
-        #         commitDate = d.strip()
-        #         commitDate = datetime.datetime(commitDate)
-        #         return commitDate
 
     # Starting point of script
     def run(self):
@@ -299,10 +289,3 @@ if len(sys.argv) > 1:
 else:
     gitTasks = gitTasks(gitTaskIdentifier)
     gitTasks.run()
-
-# print commit
-# print commitDate
-# print author
-# print email
-# for t in tasks:
-    # print t
