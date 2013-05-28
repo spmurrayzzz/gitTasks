@@ -91,7 +91,7 @@ Or, you can run the following on any repository:
 
 
 ### Show tasks
-Pass the `-l` or `--list` flag to the script. The `-d` flag shows a concise task list with `task, line number, file path` and only displays uncompleted tasks.
+Pass the `-l` or `--list` flag to the script. The `-l` flag shows a concise task list with `task, line number, file path` and only displays uncompleted tasks.
 
     $ python /path/to/gittasks.py [-l|--list]
 
