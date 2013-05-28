@@ -3,9 +3,14 @@
 ## What is it?
 **gitTasks** is a simple program to create task lists from within your codebase.
 
+#### Show tasks in concise view
 ![Command-line view of showing concise gitTasks](gitTasks-show.png "gitTasks: show")
 
+#### Show tasks in verbose view
 ![Command-line view of showing verbose gitTasks](gitTasks-all.png "gitTasks: show all")
+
+#### Search tasks for 'piggy'
+![Command-line view of showing verbose gitTasks search](gitTasks-search.png "gitTasks: search")
 
 ## Why?
 In order to keep track of things I need to do within my codebase, I've often put in `@TODO` in a comment directly in the file. Then, when I need to find out what my tasks were, I'd do a search on the entire directory (either in Sublime or via the command line) for `@TODO`. However, I never knew when I originally put the task in the codebase or a way to keep track of all those tasks, even after I deleted them from the repository. **gitTasks** was my naive attempt to solve this problem.
