@@ -75,6 +75,7 @@ class gitTasks(object):
             gitTasks = json.load(gitTasksFile)
             gitTasksFile.close()
             self.tasksInFile = gitTasks
+            return gitTasks
         else:
             sys.exit("A gitTasks file was not found!")
 
@@ -218,7 +219,8 @@ class gitTasks(object):
         else:
             # Else, open the file and save tasks
             target = open(self.curDir + '/.gittasks', 'w')
-            json.dump(self.tasks, target)
+            content = json.dumps(self.tasks, sort_keys=True, indent=4, separators=(',',':'))
+            target.write(content)
             target.close()
 
     def feedback(self):
@@ -234,8 +236,9 @@ class gitTasks(object):
         print "Search for '%s'..." % term
         for line in self.tasksInFile:
             regex = r"(.*)" + str(term) + "(.*)"
-            match = re.search(regex, line['task'])
-            if (match):
+            taskMatch = re.search(regex, line['task'])
+            fileMatch = re.search(regex, line['filePath'])
+            if taskMatch or fileMatch:
                 matches.append(self.formatTaskForDisplay(line))
         if len(matches) > 0:
             if len(matches) == 1:
@@ -270,11 +273,19 @@ class gitTasks(object):
 
         return "\n".join(task)
 
+    def orderTasks(self, tasks, field, order):
+        print type(tasks)
+        from operator import attrgetter
+        print tasks
+        sorted(tasks, key=attrgetter('date'))
+        print tasks
+        sys.exit()
 
     def showTasks(self, showAll = False):
         print "# gitTasks #"
-        self.loadFile()
-        for line in self.tasksInFile:
+        gitTasks = self.loadFile()
+        gitTasks = self.orderTasks(gitTasks, 'date', 'asc')
+        for line in gitTasks:
             task = self.formatTaskForDisplay(line)
             if task:
                 print task
