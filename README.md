@@ -48,8 +48,8 @@ I create an alias for `gt` in my `.bashrc` file:
 ### Help
 Run `gt -h` for help:
 
-    nsnow@nsnow-fedora (/var/www/sandbox/dummy.repo) $ gt -h
-    usage: gittasks.py [-h] [-i IDENTIFIER] [-s SEARCH] [-v] [-d]
+    $ gt -h
+    usage: gittasks.py [-h] [-i IDENTIFIER] [-s TERM] [-v] [-l] [-c "TASK"]
 
     Manage task lists from a repository.
 
@@ -57,17 +57,28 @@ Run `gt -h` for help:
       -h, --help            show this help message and exit
       -i IDENTIFIER, --identifier IDENTIFIER
                             Set the gitTasks identifier
-      -s SEARCH, --search SEARCH
+      -s TERM, --search TERM
                             Simple text search performed on all tasks
       -v, --verbose         Run in verbose mode
-      -d, --display         Display a task list; defaults to concise view
+      -l, --list            Display a task list; defaults to concise view
+      -c "TASK", --create "TASK"
+                            Create a new task
 
 ### Create a task
+There are two ways to create a task:
+
+##### Tasks in the codebase
 Place `@gt` anywhere in your code. It doesn't matter what characters you use to comment the task out, so `// @gt` and `# @gt` will be the same.
 
     # @gt This is your comment or
 
     // @gt Here's another comment
+
+##### Tasks via command line
+Run the following:
+
+    $ gt -c "This is a task"
+    $ gt --create "This is another task"
 
 ### Save tasks
 When you run `git commit -m "Commit message"`, the `pre-commit` kicks in and runs the script with no arguments. If this is the first time the script has been run on this repo, the entire repository will be checked for `@gt` occurrences and placed into a `.gittasks` file at the root of your repo.
@@ -80,9 +91,9 @@ Or, you can run the following on any repository:
 
 
 ### Show tasks
-Pass the `-d` or `--display` flag to the script. The `-d` flag shows a concise task list with `task, line number, file path` and only displays uncompleted tasks.
+Pass the `-l` or `--list` flag to the script. The `-d` flag shows a concise task list with `task, line number, file path` and only displays uncompleted tasks.
 
-    $ python /path/to/gittasks.py [-d|--display]
+    $ python /path/to/gittasks.py [-l|--list]
 
 ### Show all tasks
 Pass the `-v|--verbose` flag to the script, along with the `-d` flag, to display all tasks, whether they are incomplete or not. If the task is completed, the date and time that it was completed on is displayed. Otherwise, the date the task was first added to the list is displayed.

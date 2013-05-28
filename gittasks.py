@@ -53,11 +53,11 @@ class gitTasks(object):
         # 1. Does the .gittasks file exist?
         if os.path.exists(self.curDir + '/.gittasks'):
             # Retrieve the file:
-            self.loadFile()
+            tasksInFile = self.loadFile()
             diff = self.getDiff()
-            self.parse(diff)
-            self.parseChanges()
-            self.saveTasks()
+            tasksInCommit = self.parse(diff)
+            tasks = self.parseChanges(tasksInFile, tasksInCommit)
+            self.saveTasks(tasks)
             self.feedback()
         else:
             self.firstRun = True
@@ -75,7 +75,6 @@ class gitTasks(object):
             gitTasks = json.load(gitTasksFile)
             gitTasksFile.close()
             gitTasks = self.orderTasks(gitTasks, 'date', 'asc')
-            self.tasksInFile = gitTasks
             return gitTasks
         else:
             sys.exit("A gitTasks file was not found!")
@@ -150,7 +149,7 @@ class gitTasks(object):
                 h.update(filePath + gtLine)
                 tasks['taskHash'] = h.hexdigest()
                 thisTasks.append(tasks)
-        self.tasksInCommit = thisTasks
+        return thisTasks
 
     # Parse entire repository:
     def parseRepository(self):
@@ -195,9 +194,9 @@ class gitTasks(object):
                         thisTasks.append(tasks)
         self.tasks = thisTasks
 
-    def parseChanges(self):
+    def parseChanges(self, a, b):
         entries = []
-        for x, y in [(x,y) for x in self.tasksInFile for y in self.tasksInCommit]:
+        for x, y in [(x,y) for x in a for y in b]:
 
             # If the taskHash from the tasks in this commit isn't in the entries list, add it
             if not any(e['taskHash'] == y['taskHash'] for e in entries):
@@ -212,17 +211,42 @@ class gitTasks(object):
                 e['completed'] = self.getDate()
 
         self.tasks = entries
+        return entries
 
-    def saveTasks(self):
+    def saveTasks(self, tasks):
         # If there aren't any tasks, alert the user
-        if len(self.tasks) <= 0:
+        if len(tasks) <= 0:
             sys.exit("No new tasks found")
         else:
             # Else, open the file and save tasks
             target = open(self.curDir + '/.gittasks', 'w')
-            content = json.dumps(self.tasks, sort_keys=True, indent=4, separators=(',',':'))
+            content = json.dumps(tasks, sort_keys=True, indent=4, separators=(',',':'))
             target.write(content)
             target.close()
+            return True
+
+    def createTask(self, string):
+        task = {}
+        task['commitHash'] = ''
+        task['date'] = self.getDate()
+        credit = self.getAuthor()
+        task['author'] = credit[0]
+        task['email'] = credit[1]
+        task['operator'] = '+'
+        task['task'] = string
+        task['lineNumber'] = 0
+        task['filePath'] = ''
+        task['completed'] = ''
+        h = hashlib.md5()
+        h.update(string)
+        task['taskHash'] = h.hexdigest()
+        tasksInFile = self.loadFile()
+        entries = self.parseChanges(tasksInFile, [task])
+        if self.saveTasks(entries):
+            print "Saved task"
+        else:
+            print "Error saving task"
+            sys.exit()
 
     def feedback(self):
         cnt = len(self.tasks)
@@ -298,6 +322,7 @@ parser.add_argument("-i", "--identifier",
 
 parser.add_argument("-s", "--search",
     default=None,
+    metavar="TERM",
     help="Simple text search performed on all tasks")
 
 parser.add_argument("-v", "--verbose",
@@ -305,16 +330,14 @@ parser.add_argument("-v", "--verbose",
     dest="verbose",
     help="Run in verbose mode")
 
-parser.add_argument("-d", "--display",
+parser.add_argument("-l", "--list",
     action="store_true",
-    dest="display",
+    dest="list",
     help="Display a task list; defaults to concise view")
 
-# Not implemented yet
-# parser.add_argument("-c", "--create",
-#     action="store_true",
-#     dest="create",
-#     help="Create a new task")
+parser.add_argument("-c", "--create",
+    metavar='"TASK"',
+    help="Create a new task")
 
 options = parser.parse_args()
 
@@ -324,7 +347,9 @@ gitTasks = gitTasks(options)
 # Run the script ;)
 if options.search:
     gitTasks.search(options.search)
-elif options.display:
+elif options.create:
+    gitTasks.createTask(options.create)
+elif options.list:
     gitTasks.showTasks(options.verbose)
 else:
     gitTasks.run()
