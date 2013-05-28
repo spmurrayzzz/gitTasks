@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import os, re, datetime, sys, hashlib, json, argparse
 from datetime import datetime
 import pytz
