@@ -61,8 +61,8 @@ class gitTasks(object):
             self.feedback()
         else:
             self.firstRun = True
-            self.parseRepository()
-            self.saveTasks()
+            tasks = self.parseRepository()
+            self.saveTasks(tasks)
             self.feedback()
 
     def getDiff(self):
@@ -181,7 +181,7 @@ class gitTasks(object):
                         tasks['author'] = credit[0]
                         tasks['email'] = credit[1]
                         tasks['operator'] = '+'
-                        tasks['task'] = gtLine
+                        tasks['task'] = unicode(gtLine, errors='ignore')
                         tasks['lineNumber'] = num
                         filePath = os.path.join(root, fileName)
                         tasks['filePath'] = filePath
@@ -192,7 +192,7 @@ class gitTasks(object):
                         h.update(filePath + gtLine)
                         tasks['taskHash'] = h.hexdigest()
                         thisTasks.append(tasks)
-        self.tasks = thisTasks
+        return thisTasks
 
     def parseChanges(self, a, b):
         entries = []
