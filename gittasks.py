@@ -74,6 +74,7 @@ class gitTasks(object):
             gitTasksFile = open(self.curDir + '/.gittasks')
             gitTasks = json.load(gitTasksFile)
             gitTasksFile.close()
+            gitTasks = self.orderTasks(gitTasks, 'date', 'asc')
             self.tasksInFile = gitTasks
             return gitTasks
         else:
@@ -274,12 +275,10 @@ class gitTasks(object):
         return "\n".join(task)
 
     def orderTasks(self, tasks, field, order):
-        print type(tasks)
-        from operator import attrgetter
-        print tasks
-        sorted(tasks, key=attrgetter('date'))
-        print tasks
-        sys.exit()
+        newTasks = sorted(tasks, key=lambda k: k[field])
+        if order == 'desc':
+            newTasks.reverse()
+        return newTasks
 
     def showTasks(self, showAll = False):
         print "# gitTasks #"
