@@ -237,8 +237,8 @@ class gitTasks(object):
         print "Search for '%s'..." % term
         for line in self.tasksInFile:
             regex = r"(.*)" + str(term) + "(.*)"
-            taskMatch = re.search(regex, line['task'])
-            fileMatch = re.search(regex, line['filePath'])
+            taskMatch = re.search(regex, line['task'], re.IGNORECASE)
+            fileMatch = re.search(regex, line['filePath'], re.IGNORECASE)
             if taskMatch or fileMatch:
                 matches.append(self.formatTaskForDisplay(line))
         if len(matches) > 0:
