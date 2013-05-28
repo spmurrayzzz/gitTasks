@@ -96,9 +96,9 @@ Pass the `-l` or `--list` flag to the script. The `-l` flag shows a concise task
     $ python /path/to/gittasks.py [-l|--list]
 
 ### Show all tasks
-Pass the `-v|--verbose` flag to the script, along with the `-d` flag, to display all tasks, whether they are incomplete or not. If the task is completed, the date and time that it was completed on is displayed. Otherwise, the date the task was first added to the list is displayed.
+Pass the `-v|--verbose` flag to the script, along with the `-l` flag, to display all tasks, whether they are incomplete or not. If the task is completed, the date and time that it was completed on is displayed. Otherwise, the date the task was first added to the list is displayed.
 
-    $ python /path/to/gittasks.py [-d|--display] [-v|--verbose]
+    $ python /path/to/gittasks.py [-l|--list] [-v|--verbose]
 
 ### Search tasks
 Pass the `-s` or `--search` flag with a term following. You may use the `-v` flag to have more information returned. However, the term is searched for regardless if the task is complete or not.
