@@ -272,9 +272,9 @@ class gitTasks(object):
 
     def search(self, term):
         matches = []
-        self.loadFile()
+        tasks = self.loadFile()
         print "Search for '%s'..." % term
-        for line in self.tasksInFile:
+        for line in tasks:
             regex = r"(.*)" + str(term) + "(.*)"
             taskMatch = re.search(regex, line['task'], re.IGNORECASE)
             fileMatch = re.search(regex, line['filePath'], re.IGNORECASE)
