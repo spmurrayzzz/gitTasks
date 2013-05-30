@@ -9,6 +9,7 @@ class gitTasks(object):
     def __init__(self, options):
         self.identifier = options.identifier
         self.verbose = options.verbose
+        self.exclude = options.exclude.split(',')
         self.tasks = []
         self.tasksInFile = []
         self.tasksInCommit = []
@@ -87,7 +88,7 @@ class gitTasks(object):
 
     # Parse data
     def parse(self, data = False):
-        f = []
+        f = ''
         thisTasks = []
         lineNumber = 0
         # Search for self.identifier
@@ -112,49 +113,55 @@ class gitTasks(object):
                     f = addFileName
                     continue
 
-            # Retrieve the tasks:
-            reggie = r"(-|\+)(.*)" + re.escape(self.identifier) + "(.*)"
-            gtMatch = re.search(reggie, line)
-            if (gtMatch):
-                tasks = {}
-                initMatch = gtMatch.group()
-                gtLine = re.search(re.escape(self.identifier) + "(.*)", initMatch)
-                gtLine = gtLine.group()
-                gtLine = gtLine.replace(self.identifier, '')
-                gtLine = gtLine.strip()
+            filePath, fileExtension = os.path.splitext(f)
+            if fileExtension[1:] not in self.exclude:
+                # Retrieve the tasks:
+                reggie = r"(-|\+)(.*)" + re.escape(self.identifier) + "(.*)"
+                gtMatch = re.search(reggie, line)
+                if (gtMatch):
+                    tasks = {}
+                    initMatch = gtMatch.group()
+                    gtLine = re.search(re.escape(self.identifier) + "(.*)", initMatch)
+                    gtLine = gtLine.group()
+                    gtLine = gtLine.replace(self.identifier, '')
+                    gtLine = gtLine.strip()
 
-                # Get commit hash:
-                tasks['commitHash'] = self.getCommitHash()
+                    # Get commit hash:
+                    tasks['commitHash'] = self.getCommitHash()
 
-                # Get Date:
-                tasks['date'] = self.getDate()
+                    # Get Date:
+                    tasks['date'] = self.getDate()
 
-                # Get Author & email:
-                credit = self.getAuthor()
-                tasks['author'] = credit[0]
-                tasks['email'] = credit[1]
-                tasks['operator'] = initMatch[0]
-                tasks['task'] = gtLine
+                    # Get Author & email:
+                    credit = self.getAuthor()
+                    tasks['author'] = credit[0]
+                    tasks['email'] = credit[1]
+                    tasks['operator'] = initMatch[0]
+                    tasks['task'] = gtLine
+                    tasks['completed'] = ''
 
-                # hacky goodness. grab the line number of the file:
-                with open(self.curDir + '/' + f) as myFile:
-                    for numA, lineA in enumerate(myFile, 1):
-                       if gtLine in lineA:
-                            lineNumber = numA
+                    # hacky goodness. grab the line number of the file:
+                    if os.path.exists(self.curDir + '/' + f):
+                        with open(self.curDir + '/' + f) as myFile:
+                            for numA, lineA in enumerate(myFile, 1):
+                               if gtLine in lineA:
+                                    lineNumber = numA
+                    else:
+                        # Probably means this task is completed
+                        tasks['completed'] = self.getDate()
 
-                if initMatch[0] == '+':
-                    tasks['lineNumber'] = lineNumber
-                else:
-                    tasks['lineNumber'] = ''
-                filePath = self.curDir + '/' + f
-                tasks['filePath'] = filePath
-                tasks['completed'] = ''
+                    if initMatch[0] == '+':
+                        tasks['lineNumber'] = lineNumber
+                    else:
+                        tasks['lineNumber'] = ''
+                    filePath = self.curDir + '/' + f
+                    tasks['filePath'] = filePath
 
-                # Hash the task and line number together for some semblance of uniqueness
-                h = hashlib.md5()
-                h.update(filePath + gtLine)
-                tasks['taskHash'] = h.hexdigest()
-                thisTasks.append(tasks)
+                    # Hash the task and line number together for some semblance of uniqueness
+                    h = hashlib.md5()
+                    h.update(filePath + gtLine)
+                    tasks['taskHash'] = h.hexdigest()
+                    thisTasks.append(tasks)
         return thisTasks
 
     # Parse entire repository:
@@ -165,39 +172,41 @@ class gitTasks(object):
             if '.git' in dirs:
                 dirs.remove('.git')
             for fileName in files:
-                target = open(os.path.join(root, fileName))
-                for num, line in enumerate(target, 1):
-                    # Retrieve the tasks:
-                    reggie = r"" + re.escape(self.identifier) + "(.*)"
-                    gtMatch = re.search(reggie, line)
-                    if (gtMatch):
-                        tasks = {}
-                        gtLine = gtMatch.group()
-                        gtLine = gtLine.replace(self.identifier, '')
-                        gtLine = gtLine.strip()
+                filePath, fileExtension = os.path.splitext(fileName)
+                if fileExtension[1:] not in self.exclude:
+                    target = open(os.path.join(root, fileName))
+                    for num, line in enumerate(target, 1):
+                        # Retrieve the tasks:
+                        reggie = r"" + re.escape(self.identifier) + "(.*)"
+                        gtMatch = re.search(reggie, line)
+                        if (gtMatch):
+                            tasks = {}
+                            gtLine = gtMatch.group()
+                            gtLine = gtLine.replace(self.identifier, '')
+                            gtLine = gtLine.strip()
 
-                        # Get commit hash:
-                        tasks['commitHash'] = self.getCommitHash()
+                            # Get commit hash:
+                            tasks['commitHash'] = self.getCommitHash()
 
-                        # Get Date:
-                        tasks['date'] = self.getDate()
+                            # Get Date:
+                            tasks['date'] = self.getDate()
 
-                        # Get Author & email:
-                        credit = self.getAuthor()
-                        tasks['author'] = credit[0]
-                        tasks['email'] = credit[1]
-                        tasks['operator'] = '+'
-                        tasks['task'] = unicode(gtLine, errors='ignore')
-                        tasks['lineNumber'] = num
-                        filePath = os.path.join(root, fileName)
-                        tasks['filePath'] = filePath
-                        tasks['completed'] = ''
+                            # Get Author & email:
+                            credit = self.getAuthor()
+                            tasks['author'] = credit[0]
+                            tasks['email'] = credit[1]
+                            tasks['operator'] = '+'
+                            tasks['task'] = unicode(gtLine, errors='ignore')
+                            tasks['lineNumber'] = num
+                            filePath = os.path.join(root, fileName)
+                            tasks['filePath'] = filePath
+                            tasks['completed'] = ''
 
-                        # Hash the task and line number together for some semblance of uniqueness
-                        h = hashlib.md5()
-                        h.update(filePath + gtLine)
-                        tasks['taskHash'] = h.hexdigest()
-                        thisTasks.append(tasks)
+                            # Hash the task and line number together for some semblance of uniqueness
+                            h = hashlib.md5()
+                            h.update(filePath + gtLine)
+                            tasks['taskHash'] = h.hexdigest()
+                            thisTasks.append(tasks)
         return thisTasks
 
     def parseChanges(self, a, b):
@@ -300,7 +309,7 @@ class gitTasks(object):
                 task.append('  Line Number: ' + str(obj['lineNumber']))
         else:
             if obj['completed'] == '':
-                task.append("> %s, line %d, path: %s" % (obj['task'], obj['lineNumber'], obj['filePath']))
+                task.append("> %s, line %s, path: %s" % (obj['task'], str(obj['lineNumber']), obj['filePath']))
 
         return "\n".join(task)
 
@@ -341,8 +350,13 @@ parser.add_argument("-l", "--list",
     dest="list",
     help="Display a task list; defaults to concise view")
 
+parser.add_argument("-e", "--exclude",
+    default="swf,pdf,psd,ai,png,gif,jpeg,jpg,mp3,aif,m4v,m4a", # Tons more but these will get you started
+    metavar='EXT',
+    help="Comma-delimited file extensions you wish to exclude")
+
 parser.add_argument("-c", "--create",
-    metavar='"TASK"',
+    metavar='TASK',
     help="Create a new task")
 
 options = parser.parse_args()
