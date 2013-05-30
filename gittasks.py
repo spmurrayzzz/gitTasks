@@ -72,14 +72,18 @@ class gitTasks(object):
         return diff
 
     def loadFile(self):
-        if os.path.exists(self.curDir + '/.gittasks'):
-            gitTasksFile = open(self.curDir + '/.gittasks')
-            gitTasks = json.load(gitTasksFile)
-            gitTasksFile.close()
-            gitTasks = self.orderTasks(gitTasks, 'date', 'asc')
-            return gitTasks
-        else:
-            sys.exit("A gitTasks file was not found!")
+        try:
+            if os.path.exists(self.curDir + '/.gittasks'):
+                gitTasksFile = open(self.curDir + '/.gittasks')
+                gitTasks = json.load(gitTasksFile)
+                gitTasksFile.close()
+                gitTasks = self.orderTasks(gitTasks, 'date', 'asc')
+                return gitTasks
+            else:
+                sys.exit("A gitTasks file was not found!")
+        except ValueError:
+            # No tasks found in file. Pretend this is the first time running.
+            return self.parseRepository()
 
     # Parse data
     def parse(self, data = False):
