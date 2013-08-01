@@ -372,7 +372,9 @@ class gitTasks(object):
         return newTasks
 
     def showTasks(self, showAll=False):
-        print "# gitTasks #"
+        print ""
+        print "gitTasks"
+        print ""
         gitTasks = self.loadFile()
         gitTasks = self.orderTasks(gitTasks, 'date', 'asc')
         for line in gitTasks:
@@ -415,20 +417,22 @@ Display a more verbose task list.
         }
         print help[command]
 
+
 # Create the parser
 parser = argparse.ArgumentParser(
     formatter_class=argparse.RawDescriptionHelpFormatter,
     prog="gittasks.py",
     description='''
-Manage task lists from a repository.
+Manage task lists from a git repository.
 
 Commands are:
+  parse                Parse the current repository for tasks
   ls, list             List all unfinished tasks
   search               Simple text search performed on all tasks
   add                  Create a new task, not tied to any file
     ''',
     epilog='''
-See 'gt help <command>' for more information on a specific command
+See 'gittasks.py help <command>' for more information on a specific command
     ''')
 
 parser.add_argument(
@@ -495,5 +499,7 @@ if len(command) > 0:
         gitTasks.createTask(command[1])
     elif command[0] in ['ls', 'list']:
         gitTasks.showTasks()
+    elif command[0] == 'parse':
+        gitTasks.run()
 else:
-    gitTasks.run()
+    parser.print_help()
