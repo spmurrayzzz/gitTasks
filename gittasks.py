@@ -372,7 +372,6 @@ class gitTasks(object):
         return newTasks
 
     def showTasks(self, showAll=False):
-        print ""
         print "gitTasks"
         print ""
         gitTasks = self.loadFile()
@@ -381,6 +380,7 @@ class gitTasks(object):
             task = self.formatTaskForDisplay(line)
             if task:
                 print task
+        print ""
 
     def showHelp(self, command):
         print command.upper() + " help"

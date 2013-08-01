@@ -29,7 +29,7 @@ Secondly, in your git repository, if you don't have a `pre-commit` file in the `
 Next, inside the `pre-commit` file, add the following:
 
     #!/bin/sh
-    python /path/to/gittasks.py
+    python /path/to/gittasks.py parse
 
 Finally, run the following from the command line:
 
@@ -37,6 +37,8 @@ Finally, run the following from the command line:
     $ chmod u+x .git/hooks/pre-commit
 
 All done!
+
+*Note:* If you don't want the `.gittasks` file to be part of your repository, make sure you add a line in your `.gitignore` file to exclude `.gittasks`.
 
 ## Usage
 
@@ -49,20 +51,26 @@ I create an alias for `gt` in my `.bashrc` file:
 Run `gt -h` for help:
 
     $ gt -h
-    usage: gittasks.py [-h] [-i IDENTIFIER] [-s TERM] [-v] [-l] [-c "TASK"]
+    usage: gittasks.py [-h] [-v] [-e [mp3,etc]] [-i [@gt]]
 
-    Manage task lists from a repository.
+    Manage task lists from a git repository.
+
+    Commands are:
+      parse                Parse the current repository for tasks
+      ls, list             List all unfinished tasks
+      search               Simple text search performed on all tasks
+      add                  Create a new task, not tied to any file
+
 
     optional arguments:
       -h, --help            show this help message and exit
-      -i IDENTIFIER, --identifier IDENTIFIER
-                            Set the gitTasks identifier
-      -s TERM, --search TERM
-                            Simple text search performed on all tasks
       -v, --verbose         Run in verbose mode
-      -l, --list            Display a task list; defaults to concise view
-      -c "TASK", --create "TASK"
-                            Create a new task
+      -e [mp3,etc], --exclude [mp3,etc]
+                            Comma-delimited file extensions you wish to exclude
+      -i [@gt], --identifier [@gt]
+                            Set the gitTasks identifier. Default is @gt
+
+    See 'gittasks.py help <command>' for more information on a specific command
 
 ### Create a task
 There are two ways to create a task:
@@ -77,33 +85,32 @@ Place `@gt` anywhere in your code. It doesn't matter what characters you use to 
 ##### Tasks via command line
 Run the following:
 
-    $ gt -c "This is a task"
-    $ gt --create "This is another task"
+    $ gt add "This is a task"
 
 ### Save tasks
-When you run `git commit -m "Commit message"`, the `pre-commit` kicks in and runs the script with no arguments. If this is the first time the script has been run on this repo, the entire repository will be checked for `@gt` occurrences and placed into a `.gittasks` file at the root of your repo.
+When you run `git commit -m "Commit message"`, the `pre-commit` kicks in and runs the script with `parse` as the only argument. If this is the first time the script has been run on this repo, the entire repository will be checked for `@gt` occurrences and placed into a `.gittasks` file at the root of your repo.
 
 Otherwise, `git diff HEAD` is run from the script, which picks up any changes between that and the tasks in the `.gittasks` file. Tasks no longer present are marked as completed.
 
 Or, you can run the following on any repository:
 
-    $ python /path/to/gittasks.py
+    $ python /path/to/gittasks.py parse
 
 
 ### Show tasks
-Pass the `-l` or `--list` flag to the script. The `-l` flag shows a concise task list with `task, line number, file path` and only displays uncompleted tasks.
+Pass the `ls` or `list` argument to the script. The list command shows a concise task list with `task, line number, file path` and only displays uncompleted tasks.
 
-    $ python /path/to/gittasks.py [-l|--list]
+    $ python /path/to/gittasks.py [ls|list]
 
 ### Show all tasks
 Pass the `-v|--verbose` flag to the script, along with the `-l` flag, to display all tasks, whether they are incomplete or not. If the task is completed, the date and time that it was completed on is displayed. Otherwise, the date the task was first added to the list is displayed.
 
-    $ python /path/to/gittasks.py [-l|--list] [-v|--verbose]
+    $ python /path/to/gittasks.py [ls|list] [-v|--verbose]
 
 ### Search tasks
-Pass the `-s` or `--search` flag with a term following. You may use the `-v` flag to have more information returned. However, the term is searched for regardless if the task is complete or not.
+Add the `search` argument, followed by the search term you want to look for. You may use the `-v` flag to have more information returned. However, the term is searched for regardless if the task is complete or not.
 
-    $ python /path/to/gittasks.py [-s|--search] term -v
+    $ python /path/to/gittasks.py [search] `term` -v
 
 ### Set gitTask identifier
 By default, the gitTask identifier used to identify tasks within your codebase is `@gt`. This can be changed though by add the `-i` or `--identifier` flag, followed by the string you want to use in your codebase. If you want to use a different identifier, you'll need to add this flag to the python script line in the `.git/hooks/pre-commit` file.
