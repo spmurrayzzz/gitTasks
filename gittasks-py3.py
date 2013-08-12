@@ -1,11 +1,33 @@
 #!/usr/bin/env python3
 
-import os
-import re
+import argparse
 import datetime
 from datetime import datetime
-import sys
 import hashlib
 import json
-import argparse
-import pytz
+import os
+# import pytz
+import re
+import sys
+
+
+if __name__ == '__main__':
+    # Parser
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        prog='gittasks-py3.py',
+        description='''
+    A to-do list.
+        ''',
+        epilog='''
+    See 'gittasks-py3.py help <command>' for more information on a specific command.
+        ''')
+
+    parser.add_argument(
+        'cmd',
+        nargs='*',
+        help=argparse.SUPPRESS
+    )
+
+    opts = vars(parser.parse_args())
+    command = opts.pop('cmd')
