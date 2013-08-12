@@ -11,6 +11,11 @@ import re
 import sys
 
 
+class gitTasks(object):
+
+    def __init__(self):
+        pass
+
 if __name__ == '__main__':
     # Parser
     parser = argparse.ArgumentParser(
@@ -31,3 +36,14 @@ if __name__ == '__main__':
 
     opts = vars(parser.parse_args())
     command = opts.pop('cmd')
+
+    # Initialize
+    gt = gitTasks()
+
+    # Run
+    if len(command) > 0:
+        if command[0] == 'parse':
+            if len(command) > 1:
+                filename = command[1]
+                gt.parse(filename)
+
